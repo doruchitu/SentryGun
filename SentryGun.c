@@ -45,45 +45,64 @@ int main() {
 
 
 //          CODUL PENTRU MOTORUL PAS CU PAS 28BYJ-48
-/*
 #include <stdio.h>
 #include "pico/stdlib.h"
-#include <stdint.h>
+
+#define IN1 16
+#define IN2 17
+#define IN3 18
+#define IN4 19
+
+#define MAX_STEPS_180 1300 // 200 grade în modul full-step (2048 pași = 360°)
+#define STEP_DELAY_MS 4    // Viteza motorului (mai mare = mai lent; minim ~2ms)
+
+// Secvența full-step (4 pași) pentru motorul 28BYJ-48
+const int step_seq[4][4] = {
+    {1, 1, 0, 0},
+    {0, 1, 1, 0},
+    {0, 0, 1, 1},
+    {1, 0, 0, 1}
+};
+
+int step_index = 0;
+int current_pos = 0;
+int direction = 1; // 1 = spre 180°, -1 = înapoi spre 0°
+
+void motor_step(int dir) {
+    step_index = (step_index + dir + 4) % 4;
+
+    gpio_put(IN1, step_seq[step_index][0]);
+    gpio_put(IN2, step_seq[step_index][1]);
+    gpio_put(IN3, step_seq[step_index][2]);
+    gpio_put(IN4, step_seq[step_index][3]);
+}
+
+void step_patrol() {
+    motor_step(direction);
+    current_pos += direction;
+
+    if (current_pos >= MAX_STEPS_180) {
+        direction = -1;
+    } else if (current_pos <= 0) {
+        direction = 1;
+    }
+}
 
 int main() {
     stdio_init_all();
 
-    // Definim pinii conectați la IN1, IN2, IN3, IN4
-    const uint motor_pins[4] = {16, 17, 18, 19};
-
-    // Configurăm pinii ca ieșiri (OUTPUT)
+    int pins[4] = {IN1, IN2, IN3, IN4};
     for (int i = 0; i < 4; i++) {
-        gpio_init(motor_pins[i]);
-        gpio_set_dir(motor_pins[i], GPIO_OUT);
+        gpio_init(pins[i]);
+        gpio_set_dir(pins[i], GPIO_OUT);
+        gpio_put(pins[i], 0);
     }
-
-    // Secvența clasică de pași (Full-Step) pentru acest motor
-    const uint8_t step_sequence[4][4] = {
-        {1, 1, 0, 0},
-        {0, 1, 1, 0},
-        {0, 0, 1, 1},
-        {1, 0, 0, 1}
-    };
 
     while (true) {
-        // Parcurgem cei 4 pași din secvență
-        for (int step = 0; step < 4; step++) {
-            // Trimitem semnalul către fiecare pin
-            for (int pin = 0; pin < 4; pin++) {
-                gpio_put(motor_pins[pin], step_sequence[step][pin]);
-            }
-            
-            // O pauză foarte scurtă între pași. 
-            // 2-3 milisecunde este ideal pentru 28BYJ-48.
-            sleep_ms(3); 
-        }
+        step_patrol();
+        sleep_ms(STEP_DELAY_MS);
     }
-} */
+}
 
 
 // COD PENTRU DIODA LASER   
@@ -135,7 +154,8 @@ int main() {
     }
 } */
 
-
+// COD PENTRU CITITORUL RFID 
+/*
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
@@ -287,4 +307,4 @@ int main() {
         }
         sleep_ms(100);
     }
-}
+} */
