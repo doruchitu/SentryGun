@@ -6,9 +6,6 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Initialise pico_sdk from installed location
-# (note this can come from environment, CMake cache etc)
-
 # == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
 if(WIN32)
     set(USERHOME $ENV{USERPROFILE})
@@ -34,24 +31,24 @@ project(SentryGun C CXX ASM)
 pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
-
-add_executable(SentryGun SentryGun.c )
+add_executable(SentryGun SentryGun.c)
 
 pico_set_program_name(SentryGun "SentryGun")
 pico_set_program_version(SentryGun "0.1")
 
-# Modify the below lines to enable/disable output over UART/USB
+# Enable output over USB (for Serial Monitor)
 pico_enable_stdio_uart(SentryGun 0)
-pico_enable_stdio_usb(SentryGun 0)
+pico_enable_stdio_usb(SentryGun 1)
 
-# Add the standard library to the build
+# Add libraries to the build
 target_link_libraries(SentryGun
-        pico_stdlib)
+    pico_stdlib
+    hardware_spi
+)
 
 # Add the standard include files to the build
 target_include_directories(SentryGun PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}
+    ${CMAKE_CURRENT_LIST_DIR}
 )
 
 pico_add_extra_outputs(SentryGun)
-
